@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="mycanvas" width="500" height="500">
+        Tu navegador no soporta canvas
+    </canvas>
+
+    <script text="text/javascript">
+        var cv = null;
+        var ctx = null;
+        var player1 = null;
+        var player2 = null;
+        var ob1=null;
+        var super_x = 240, super_y = 240;
+        var pause =false;
+        var fin=false;
+        var pacman=new Image();
+        var fantasma=new Image();
+        var comer=new Audio();
+        
+        var direction = 'left';
+        var score = 0;
+
+        function start () {
+            cv = document.getElementById("mycanvas");
+            ctx = cv.getContext('2d');
+            player1 = new Cuadrado(super_x, super_y, 40, 40, "red");
+            player2 = new Cuadrado(generateRandomInteger(460), generateRandomInteger(460), 40, 40, "red");
+            ob1=new Cuadrado(generateRandomInteger(420), generateRandomInteger(450), generateRandomInteger(80),generateRandomInteger(50), "blue");
+            pacman.src='pacman.jpg';
+            fantasma.src='fantasma.png';
+            comer.src='comer.mp3';
+            paint();
+        }
+
+        function paint() {
+
+            window.requestAnimationFrame(paint);            
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, 500, 500);
+
+            
+            player1.c = random_rgba();
+            //player1.dibujar(ctx);
+            ctx.drawImage(pacman,player1.x,player1.y);
+
+            //player2.dibujar(ctx);
+            ctx.drawImage(fantasma,player2.x,player2.y);
+            ob1.dibujar(ctx);
+            ctx.fillStyle="rgb(0,0,0,0.5)";
+                ctx.fillRect(0,0,500,500);
+                ctx.fillStyle="black";
+                ctx.fillText("Score:"+score,50,50);
+
+
+            if(!pause)
+            {
+                update();
+            }else{
+                
+                ctx.fillStyle="rgb(0,0,0,0.5)";
+                ctx.fillRect(0,0,500,500);
+                ctx.fillStyle="white";
+                ctx.fillText('PAUSE',250,250);
+            }
+        }
+
+        function Cuadrado(x, y, w, h, c) {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+            this.c = c;
+
+            this.se_tocan = function (target) { 
+
+                if(this.x < target.x + target.w &&
+                this.x + this.w > target.x && 
+                this.y < target.y + target.h && 
+                this.y + this.h > target.y) {
+                    return true;  
+                }  
+            };
+
+            this.dibujar = function(ctx) {
+                ctx.fillStyle = this.c;
+                ctx.fillRect(this.x, this.y, this.w, this.h);
+                ctx.strokeRect(this.x, this.y, this.w, this.h);
+            }
+
+        }
+
+        
+        function update() {
+
+            if (direction == 'right') {
+                if(player1.se_tocan(ob1))
+                {
+                    player1.x=player1.x-2;
+                }else
+                {
+                    player1.x += 2; 
+                    if (player1.x > 500) {
+                        player1.x = 0;
+                    }
+                }
+                
+                    
+
+            } 
+
+            if (direction == 'left') {
+                
+                if(player1.se_tocan(ob1))
+                {
+                    player1.x=player1.x+2;
+
+                }else
+                {     
+                    player1.x -= 2; 
+                    if (player1.x < 0) {
+                        player1.x = 500;
+                    }
+
+                }
+               
+                
+
+            }
+
+            if (direction == 'down') {
+                if(player1.se_tocan(ob1))
+                {
+                    player1.y=player1.y-2;
+
+                }else
+                {
+                    player1.y += 2; 
+                    if (player1.y > 500) 
+                    {
+                    player1.y = 0;
+                    }
+
+                } 
+               
+              
+            }
+
+            if (direction == 'up') {
+
+                if(player1.se_tocan(ob1))
+                {
+                    player1.y=player1.y+2;
+                }else
+                { 
+                       player1.y -= 2; 
+                    if (player1.y < 0) {
+                        player1.y = 500;
+                    }
+
+                }
+                
+            }
+            
+            
+            if (player1.se_tocan(player2)) {
+                player2.x = generateRandomInteger(460);
+                player2.y = generateRandomInteger(460);
+                score += 10;   
+                comer.play();
+            }
+            if(player2.se_tocan(ob1))
+             {
+                player2.x = generateRandomInteger(460);
+                player2.y = generateRandomInteger(460); 
+             }
+            
+            
+            
+        }
+
+        document.addEventListener('keydown', (e) => {
+            console.log(e);
+
+            // Arriba
+            if (e.keyCode == 87 || e.keyCode == 38) {
+                direction = 'up';
+            }
+            
+            // Abajo
+            if (e.keyCode == 83 || e.keyCode == 40) {
+                direction = 'down';
+            }
+            
+            // Izquierda
+            if (e.keyCode == 65 || e.keyCode == 37) {
+                direction = 'left';
+            }
+            
+            // Derecha
+            if (e.keyCode == 68 || e.keyCode == 39) {
+                direction = 'right';
+            }
+
+            if(e.keyCode == 32)
+            {
+                pause= (pause)?false:true;
+            }
+            
+        });
+
+        function generateRandomInteger(max) {
+            return Math.floor(Math.random() * max) + 1;
+        }
+
+        window.addEventListener('load', start);
+
+        window.requestAnimationFrame = (function () {
+            // Son paquetes dependediendo del navegador que utilizemos
+            return window.requestAnimationFrame || 
+            window.webkitRequestAnimationFrame || 
+            window.mozRequestAnimationFrame || 
+            function (callback) {
+                window.setTimeout(callback, 17);
+            };
+
+        }());
+
+        document.addEventListener('keydown', (e) => {
+
+        });
+
+        function random_rgba() {
+            var o = Math.round, r = Math.random, s = 255;
+            return 'rgba(' + o(r()*s) + ',' + o(r()*s) + ',' + o(r()*s) + ',' + r().toFixed(1) + ')';
+        }
+        
+    </script>
+</body>
+</html>
